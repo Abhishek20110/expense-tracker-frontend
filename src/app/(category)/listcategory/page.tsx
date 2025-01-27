@@ -16,7 +16,7 @@ const ListCategory: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
-    const [sortField, setSortField] = useState<string>("name");
+ const [sortField, setSortField] = useState<keyof Category>("name");  
     const [sortOrder, setSortOrder] = useState<string>("asc");
     const [loading, setLoading] = useState<boolean>(false);
     const [renameModalOpen, setRenameModalOpen] = useState<boolean>(false);
