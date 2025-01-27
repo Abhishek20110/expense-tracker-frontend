@@ -1,5 +1,5 @@
 import React from "react";
-import AddExpense from "../../(useraction)/add_expense/page.tsx";
+import AddExpense from "../../(useraction)/add_expense/page";
 
 export default function ReuseAddExpense() {
   return (
