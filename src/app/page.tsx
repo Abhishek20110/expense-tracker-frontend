@@ -6,19 +6,62 @@ import { useRouter } from "next/navigation";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { PlusCircle, Wallet, TrendingDown, TrendingUp, DollarSign, IndianRupee, Percent } from 'lucide-react';
 
-
-interface ExpenseCategory {
+// Type definitions
+interface ExpenseCategoryData {
     category: string;
     amount: number;
     percentage: number;
 }
 
-interface GraphData {
+interface CategoryData {
     name: string;
     value: number;
     Percent: number;
+    color: string;
 }
 
+interface MonthlyExpenseResponse {
+    data: {
+        thisMonthAmount: number;
+        lastMonthAmount: number;
+    };
+}
+
+interface DailyAverageResponse {
+    data: {
+        dailyAverage: number;
+    };
+}
+
+interface BiggestExpenseResponse {
+    data: {
+        biggestExpense: {
+            amount: number;
+        };
+        category: {
+            name: string;
+        };
+    };
+}
+
+interface TotalExpensesResponse {
+    data: {
+        totalAmount: number;
+    };
+}
+
+interface ExpensePerCategoryResponse {
+    data: {
+        expensePerCategory: ExpenseCategoryData[];
+    };
+}
+const categoryColors: { [key: string]: string } = {
+    Food: "bg-blue-500",
+    Shopping: "bg-green-500",
+    Transport: "bg-yellow-500",
+    Bills: "bg-purple-500",
+    Others: "bg-gray-500"
+};
 const colorPalette = [
     "bg-blue-500",
     "bg-green-500",
@@ -35,21 +78,19 @@ const CHART_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 const HomePage: React.FC = () => {
     const [monthlyTotal, setMonthlyTotal] = useState<number>(0);
     const [lastMonthlyTotal, setLastMonthlyTotal] = useState<number>(0);
-    const [expensePerCategory, setExpensePerCategory] = useState<ExpenseCategory[]>([]);
-    const [dailyavg , setdailyavg] = useState<number>(0);
+    const [dailyavg, setdailyavg] = useState<number>(0);
     const [b_amount, setb_amount] = useState<number>(0);
     const [b_category, setb_category] = useState<string>("");
     const [totalexpense, settotalexpense] = useState<number>(0);
     const [monthlyData, setMonthlyData] = useState<any[]>([]);
-    const [categoryData , setCategoryData] = useState<any[]>([]);
-    const [weeklyData , setWeeklyData] = useState<any[]>([]);
+    const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
+    const [weeklyData, setWeeklyData] = useState<any[]>([]);
     const [recentExpensesdy, setRecentExpenses] = useState<any[]>([]);
-    const [categoryTotals, setCategoryTotals] = useState<any>({});
+    const [categoryTotals, setCategoryTotals] = useState<Record<string, number>>({});
     const [dailyExpenses, setDailyExpenses] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const apiurl = process.env.NEXT_PUBLIC_API_URL;
-
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -60,89 +101,65 @@ const HomePage: React.FC = () => {
                     return;
                 }
                 
-                // Add your API calls here
-                const res1 = await axios.get(`${apiurl}/api/home/monthly-expense`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                // Monthly expense
+                const res1 = await axios.get<MonthlyExpenseResponse>(`${apiurl}/api/home/monthly-expense`, {
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 setMonthlyTotal(res1.data.data.thisMonthAmount);      
                 setLastMonthlyTotal(res1.data.data.lastMonthAmount);
 
-                const res2 = await axios.get(`${apiurl}/api/home/daily-average`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                // Daily average
+                const res2 = await axios.get<DailyAverageResponse>(`${apiurl}/api/home/daily-average`, {
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 setdailyavg(res2.data.data.dailyAverage);
 
-                const res3 = await axios.get(`${apiurl}/api/home/biggest-expense`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                // Biggest expense
+                const res3 = await axios.get<BiggestExpenseResponse>(`${apiurl}/api/home/biggest-expense`, {
+                    headers: { Authorization: `Bearer ${token}` }
                 });
-               
                 setb_amount(res3.data.data.biggestExpense.amount);
                 setb_category(res3.data.data.category.name);
 
-                const res4 = await axios.get(`${apiurl}/api/home/total-expenses`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                // Total expenses
+                const res4 = await axios.get<TotalExpensesResponse>(`${apiurl}/api/home/total-expenses`, {
+                    headers: { Authorization: `Bearer ${token}` }
                 });
                 settotalexpense(res4.data.data.totalAmount);
 
+                // Monthly data
                 const res5 = await axios.get(`${apiurl}/api/home/per-month-expense`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
-               
                 setMonthlyData(res5.data.data);
 
-                const res6 = await axios.get(`${apiurl}/api/home/expense-per-category`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                // Expense per category
+                const res6 = await axios.get<ExpensePerCategoryResponse>(`${apiurl}/api/home/expense-per-category`, {
+                    headers: { Authorization: `Bearer ${token}` }
                 });
 
-                // Extract the expense per category from the response
-                setExpensePerCategory(res6.data.data.expensePerCategory);
+                const expensePerCategory = res6.data.data.expensePerCategory;
                 
-                // Map the data for the graph
-                const categoryData = expensePerCategory.map((item ,index) => ({
-                    name: item.category, // Category name
-                    value: item.amount,  // Total amount for the category
-                    Percent : item.percentage,
+                const categoryData = expensePerCategory.map((item: ExpenseCategoryData, index: number) => ({
+                    name: item.category,
+                    value: item.amount,
+                    Percent: item.percentage,
                     color: colorPalette[index % colorPalette.length],
                 }));
                 
-                // Set the processed data to state
                 setCategoryData(categoryData);
 
+                // Weekly data
                 const res7 = await axios.get(`${apiurl}/api/home/per-day-expense`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
-             
                 setWeeklyData(res7.data.data);
 
+                // Recent expenses
                 const res8 = await axios.get(`${apiurl}/api/home/recent-expenses`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                    headers: { Authorization: `Bearer ${token}` }
                 });
-                console.log(res8.data.data);
                 setRecentExpenses(res8.data.data);
-
-
-                
-
-            
-
-                
-
 
             } catch (error) {
                 console.error(error);
@@ -152,6 +169,7 @@ const HomePage: React.FC = () => {
 
         fetchData();
     }, [apiurl, router]);
+
     const handleAddExpense = () => {
         window.open("/addexpense", "_blank");
       };
@@ -286,7 +304,7 @@ const HomePage: React.FC = () => {
                                     <div className={`w-3 h-3 rounded-full mr-2 ${category.color}`}></div>
                                     <span>{category.name}</span>
                                 </div>
-                                <span className="font-semibold">₹{category.value} ( {category.Percent} )</span>
+                                <span className="font-semibold">₹{category.value} ( {category.Percent}% )</span>
                             </div>
                         ))}
                     </div>
