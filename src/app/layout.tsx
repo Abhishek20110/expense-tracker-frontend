@@ -52,21 +52,6 @@ export default function RootLayout({
   
     validateToken();
   }, [router, apiurl]);
-
-  if (loading) {
-    return <Preloader />;
-  }
-  const redirect = () => {
-    const currentPath = window.location.pathname;
-    
-    if (currentPath === '/') {
-      // If already on home page, redirect to external site
-      window.location.href = "https://expense-tracker-frontend-indol.vercel.app/";
-    } else {
-      // If on another page, redirect to home
-      router.push("/");
-    }
-  };
   
 
   return (
@@ -114,8 +99,7 @@ export default function RootLayout({
             {/* Header */}
             <header className="bg-gray-900 text-white py-4 px-6 shadow-md">
   <div className="container mx-auto flex justify-between items-center">
-    <div onClick={redirect}
-     className="text-xl font-bold">Expense Tracker</div>
+    <div className="text-xl font-bold">Expense Tracker</div>
     {/* Hamburger Menu for Mobile */}
     <div className="md:hidden">
       <button
