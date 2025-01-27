@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline'; // Use outline for v2
 
 interface Category {
     _id: string;
     name: string;
 }
+
+type SortField = keyof Category; // Ensures sortField is a valid key of Category
 
 const ListCategory: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
@@ -15,7 +17,7 @@ const ListCategory: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
-    const [sortField, setSortField] = useState<keyof Category>("name");  // Use keyof Category here
+    const [sortField, setSortField] = useState<SortField>("name"); // Explicitly typed to SortField
     const [sortOrder, setSortOrder] = useState<string>("asc");
     const [loading, setLoading] = useState<boolean>(false);
     const [renameModalOpen, setRenameModalOpen] = useState<boolean>(false);
@@ -61,8 +63,8 @@ const ListCategory: React.FC = () => {
             );
 
             filteredData.sort((a, b) => {
-                const aValue = a[sortField];
-                const bValue = b[sortField];
+                const aValue = a[sortField]; // a[sortField] is implicitly typed as `string`
+                const bValue = b[sortField]; // b[sortField] is implicitly typed as `string`
 
                 if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
                 if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
@@ -151,7 +153,95 @@ const ListCategory: React.FC = () => {
 
     return (
         <div className="relative w-full px-4 sm:px-6 lg:px-8 py-6 md:py-10 bg-gradient-to-r from-pink-100 via-purple-100 to-indigo-100 rounded-xl mx-auto">
-            {/* Your component content */}
+            <div className="absolute top-0 right-0 mt-4 mr-4">
+                <button
+                    onClick={handleAddNew}
+                    className="px-4 py-2 sm:px-6 sm:py-3 text-white bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full hover:from-yellow-500 hover:to-orange-600 transition-transform transform hover:scale-105 duration-300 shadow-md"
+                >
+                    Add New Category
+                </button>
+            </div>
+            <h1 className="text-2xl md:text-4xl font-bold text-center mb-6 md:mb-8 text-purple-900">My Categories</h1>
+
+            {success && <div className="text-green-600 text-center mb-4">{success}</div>}
+            {error && <div className="text-red-600 text-center mb-4">{error}</div>}
+
+            <div className="mb-4">
+                <input
+                    type="text"
+                    placeholder="Search Category..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded"
+                />
+            </div>
+
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                <div>
+                    <label className="mr-2">Sort By:</label>
+                    <select
+                        value={sortField}
+                        onChange={(e) => setSortField(e.target.value as SortField)} // Ensure correct typing
+                        className="px-4 py-2 border border-gray-300 rounded"
+                    >
+                        <option value="name">Name</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="mr-2">Order:</label>
+                    <select
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value)}
+                        className="px-4 py-2 border border-gray-300 rounded"
+                    >
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+                </div>
+            </div>
+
+            <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
+                    <thead className="bg-purple-800 text-white">
+                        <tr>
+                            <th className="py-2 px-3 border border-gray-200 text-center w-1/12">Sl</th>
+                            <th className="py-2 px-3 border border-gray-200 text-center w-1/2">Title</th>
+                            <th className="py-2 px-3 border border-gray-200 text-center w-1/3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filtered.length > 0 ? (
+                            filtered.map((category, index) => (
+                                <tr key={category._id} className="hover:bg-gray-100 transition-all duration-300 ease-in-out">
+                                    <td className="py-2 px-3 border border-gray-200 text-center">{index + 1}</td>
+                                    <td className="py-2 px-3 border border-gray-200 text-center">{category.name}</td>
+                                    <td className="py-2 px-3 border border-gray-200 text-center flex flex-col sm:flex-row gap-2 justify-center">
+                                        <button
+                                            onClick={() => handleRename(category._id, category.name)}
+                                            className="p-2 text-white bg-blue-500 rounded hover:bg-blue-600 transition-colors duration-200"
+                                            aria-label="Rename"
+                                        >
+                                            <PencilIcon className="h-5 w-5" />
+                                        </button>
+
+                                        <button
+                                            onClick={() => handleDelete(category._id)}
+                                            className="p-2 text-white bg-red-500 rounded hover:bg-red-600 transition-colors duration-200"
+                                            aria-label="Delete"
+                                        >
+                                            <TrashIcon className="h-5 w-5" />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={3} className="text-center py-2">No categories found</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };
