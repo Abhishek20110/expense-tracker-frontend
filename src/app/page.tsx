@@ -6,13 +6,19 @@ import { useRouter } from "next/navigation";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { PlusCircle, Wallet, TrendingDown, TrendingUp, DollarSign, IndianRupee, Percent } from 'lucide-react';
 
-const categoryColors: { [key: string]: string } = {
-    Food: "bg-blue-500",
-    Shopping: "bg-green-500",
-    Transport: "bg-yellow-500",
-    Bills: "bg-purple-500",
-    Others: "bg-gray-500"
-};
+
+interface ExpenseCategory {
+    category: string;
+    amount: number;
+    percentage: number;
+}
+
+interface GraphData {
+    name: string;
+    value: number;
+    Percent: number;
+}
+
 const colorPalette = [
     "bg-blue-500",
     "bg-green-500",
@@ -29,6 +35,7 @@ const CHART_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 const HomePage: React.FC = () => {
     const [monthlyTotal, setMonthlyTotal] = useState<number>(0);
     const [lastMonthlyTotal, setLastMonthlyTotal] = useState<number>(0);
+    const [expensePerCategory, setExpensePerCategory] = useState<ExpenseCategory[]>([]);
     const [dailyavg , setdailyavg] = useState<number>(0);
     const [b_amount, setb_amount] = useState<number>(0);
     const [b_category, setb_category] = useState<string>("");
@@ -42,46 +49,6 @@ const HomePage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const apiurl = process.env.NEXT_PUBLIC_API_URL;
-
-    // Sample data for graphs - replace with actual data from your API
-   /*  let categoryData = [
-        { name: 'Food', value: 450 },
-        { name: 'Shopping', value: 300 },
-        { name: 'Transport', value: 200 },
-        { name: 'Bills', value: 800 },
-        { name: 'Others', value: 150 }
-    ]; */
-
-
-  
-
-    const recentExpenses = [
-        {
-            description: "Groceries",
-            category: "Food",
-            date: "2025-01-20",
-            amount: 45.60
-        },
-        {
-            description: "Electricity Bill",
-            category: "Utilities",
-            date: "2025-01-19",
-            amount: 78.30
-        },
-        {
-            description: "Movie Tickets",
-            category: "Entertainment",
-            date: "2025-01-18",
-            amount: 25.00
-        },
-        {
-            description: "Coffee at Café",
-            category: "Food",
-            date: "2025-01-17",
-            amount: 5.80
-        }
-    ];
-    
 
     useEffect(() => {
         const fetchData = async () => {
@@ -140,7 +107,7 @@ const HomePage: React.FC = () => {
                 });
 
                 // Extract the expense per category from the response
-                const expensePerCategory = res6.data.data.expensePerCategory;
+                setExpensePerCategory(res6.data.data.expensePerCategory);
                 
                 // Map the data for the graph
                 const categoryData = expensePerCategory.map((item ,index) => ({

@@ -2,14 +2,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline'; // Use outline for v2
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 interface Category {
     _id: string;
     name: string;
 }
-
-type SortField = keyof Category; // Ensures sortField is a valid key of Category
 
 const ListCategory: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
@@ -17,8 +15,8 @@ const ListCategory: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
-    const [sortField, setSortField] = useState<SortField>("name"); // Explicitly typed to SortField
-    const [sortOrder, setSortOrder] = useState<string>("asc");
+    const [sortField, setSortField] = useState<keyof Category>("name");
+    const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
     const [loading, setLoading] = useState<boolean>(false);
     const [renameModalOpen, setRenameModalOpen] = useState<boolean>(false);
     const [renameCategoryId, setRenameCategoryId] = useState<string | null>(null);
@@ -63,8 +61,8 @@ const ListCategory: React.FC = () => {
             );
 
             filteredData.sort((a, b) => {
-                const aValue = a[sortField]; // a[sortField] is implicitly typed as `string`
-                const bValue = b[sortField]; // b[sortField] is implicitly typed as `string`
+                const aValue = a[sortField];
+                const bValue = b[sortField];
 
                 if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
                 if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
@@ -81,7 +79,7 @@ const ListCategory: React.FC = () => {
         const isConfirmed = window.confirm("Are you sure you want to delete this category?");
         
         if (!isConfirmed) {
-            return; // If the user cancels, do nothing
+            return;
         }
     
         try {
@@ -151,6 +149,16 @@ const ListCategory: React.FC = () => {
         }
     };
 
+    const handleSortFieldChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value as keyof Category;
+        setSortField(value);
+    };
+
+    const handleSortOrderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value as "asc" | "desc";
+        setSortOrder(value);
+    };
+
     return (
         <div className="relative w-full px-4 sm:px-6 lg:px-8 py-6 md:py-10 bg-gradient-to-r from-pink-100 via-purple-100 to-indigo-100 rounded-xl mx-auto">
             <div className="absolute top-0 right-0 mt-4 mr-4">
@@ -181,7 +189,7 @@ const ListCategory: React.FC = () => {
                     <label className="mr-2">Sort By:</label>
                     <select
                         value={sortField}
-                        onChange={(e) => setSortField(e.target.value as SortField)} // Ensure correct typing
+                        onChange={handleSortFieldChange}
                         className="px-4 py-2 border border-gray-300 rounded"
                     >
                         <option value="name">Name</option>
@@ -191,7 +199,7 @@ const ListCategory: React.FC = () => {
                     <label className="mr-2">Order:</label>
                     <select
                         value={sortOrder}
-                        onChange={(e) => setSortOrder(e.target.value)}
+                        onChange={handleSortOrderChange}
                         className="px-4 py-2 border border-gray-300 rounded"
                     >
                         <option value="asc">Ascending</option>
@@ -210,7 +218,11 @@ const ListCategory: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filtered.length > 0 ? (
+                        {loading ? (
+                            <tr>
+                                <td colSpan={3} className="py-4 text-center">Loading...</td>
+                            </tr>
+                        ) : filtered.length > 0 ? (
                             filtered.map((category, index) => (
                                 <tr key={category._id} className="hover:bg-gray-100 transition-all duration-300 ease-in-out">
                                     <td className="py-2 px-3 border border-gray-200 text-center">{index + 1}</td>
@@ -236,12 +248,40 @@ const ListCategory: React.FC = () => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={3} className="text-center py-2">No categories found</td>
+                                <td colSpan={3} className="py-2 px-3 text-center text-gray-600">No categories available</td>
                             </tr>
                         )}
                     </tbody>
                 </table>
             </div>
+
+            {renameModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                        <h2 className="text-xl font-bold mb-4">Rename Category</h2>
+                        <input
+                            type="text"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded mb-4"
+                        />
+                        <div className="flex justify-between">
+                            <button
+                                onClick={() => setRenameModalOpen(false)}
+                                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleRenameSubmit}
+                                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
