@@ -6,6 +6,7 @@ import Preloader from "./components/Preloader";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { Analytics } from "@vercel/analytics/react"
 
 export default function RootLayout({
   children,
