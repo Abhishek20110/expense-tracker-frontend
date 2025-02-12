@@ -283,17 +283,23 @@ export default function RootLayout({
         <i className="fab fa-linkedin fa-lg"></i>
       </a>
     </p>
-    <div className="flex justify-center items-center">
-      {/* Apk download have with playstore icon */}
-      <img
-        src="https://w7.pngwing.com/pngs/366/351/png-transparent-google-play-store-logo-google-play-app-store-android-wallets-text-label-logo-thumbnail.png"
-        alt="Play Store"
-        className="w-10 h-10 mx-4 transition-all
-        duration-300"
-      />
-      
-      
-    </div>
+    
+    <div className="flex justify-center items-center mt-4">
+  {/* APK Download Button with Play Store Icon */}
+  <a
+    href="https://github.com/Abhishek20110/expense-Tracker-App/releases/download/version/Expense_Tracker.apk"
+    download
+    className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
+  >
+    <img
+      src="https://res.cloudinary.com/dmdsoq8cj/image/upload/v1739356552/playstore_pavryf.png" 
+      alt="Play Store Icon"
+      className="w-6 h-6 mr-2"
+    />
+    Download APK
+  </a>
+</div>
+
 
 
 
