@@ -31,6 +31,9 @@ export default function RootLayout({
         //console.log(response);
   
         if (response.status === 406) {
+          // Logout and redirect to login page if token is invalid or expired
+          localStorage.removeItem("token");
+          
           router.push("/login");
         }
          else if(response.status === 200) {
@@ -46,7 +49,7 @@ export default function RootLayout({
        
       } catch (error) {
         console.error("Error validating token:", error);
-        //router.push("/login");
+        router.push("/login");
       }
     };
   
@@ -132,7 +135,7 @@ export default function RootLayout({
       <Link
         href="/listcategory"
         className="text-white font-semibold hover:underline hover:text-yellow-400"
-      >Expense Categoty</Link>
+      >Expense Category</Link>
       <Link
         href="/aboutus"
         className="text-white font-semibold hover:underline hover:text-yellow-400"
@@ -181,7 +184,7 @@ export default function RootLayout({
     <Link
         href="/listcategory"
         className="block px-4 py-2 hover:bg-gray-700 hover:text-yellow-400"
-      >Expense Categoty</Link>
+      >Expense Category</Link>
       <Link href = "/listexpense" 
         className="block px-4 py-2 hover:bg-gray-700 hover:text-yellow-400">Expense</Link>
     <Link
