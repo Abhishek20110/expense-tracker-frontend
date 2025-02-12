@@ -283,6 +283,20 @@ export default function RootLayout({
         <i className="fab fa-linkedin fa-lg"></i>
       </a>
     </p>
+    <div className="flex justify-center items-center">
+      {/* Apk download have with playstore icon */}
+      <img
+        src="https://play-lh.googleusercontent.com/p/AF1QipN6aYk7xZf8wK5l75b5B9a77928e88817929=s180-c-k-c0xffffffff-no-rj-mo"
+        alt="Play Store"
+        className="w-10 h-10 mx-4 transition-all
+        duration-300"
+      />
+      
+      
+    </div>
+
+
+
               </div>
             </footer>
           </>
